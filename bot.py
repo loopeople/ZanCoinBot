@@ -10,12 +10,16 @@ from telegram.ext import (
     CommandHandler,
     CallbackQueryHandler,
     ContextTypes,
+    MessageHandler,
+    filters,
 )
 from deep_translator import GoogleTranslator
+from aiohttp import web
 
 # ---------- Logging ----------
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
 )
 
 # ---------- Translation Helper ----------
@@ -180,11 +184,13 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_translated(update, context, text, buttons)
 
 # ---------- Main ----------
-def main():
+async def main():
     TOKEN = os.getenv("TELEGRAM_TOKEN")
+    APP_URL = os.getenv("APP_URL")  # Render public URL
+    
     app = ApplicationBuilder().token(TOKEN).build()
 
-    # Command & Callback handlers
+    # Handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(what_is, pattern="^what_is$"))
     app.add_handler(CallbackQueryHandler(explain, pattern="^explain$"))
@@ -196,7 +202,25 @@ def main():
     app.add_handler(CallbackQueryHandler(back_main, pattern="^back_main$"))
     app.add_handler(CallbackQueryHandler(start, pattern="^start$"))
 
-    app.run_polling()
+    # Set webhook
+    await app.bot.set_webhook(f"{APP_URL}/webhook/{TOKEN}")
+
+    # Run aiohttp server for webhook
+    async def handle(request):
+        update = Update.de_json(await request.json(), app.bot)
+        await app.update_queue.put(update)
+        return web.Response(text="ok")
+
+    web_app = web.Application()
+    web_app.router.add_post(f"/webhook/{TOKEN}", handle)
+
+    runner = web.AppRunner(web_app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", int(os.environ.get("PORT", 10000)))
+    await site.start()
+    print("Webhook running...")
+    await app.run_polling()  # Only keeps app alive
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
