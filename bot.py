@@ -14,7 +14,9 @@ from telegram.ext import (
 from deep_translator import GoogleTranslator
 
 # ---------- Logging ----------
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 
 # ---------- Translation Helper ----------
 def translate_text(text, target_lang):
@@ -158,7 +160,7 @@ async def back_main(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = "🌐 Redirecting to registration page..."
     buttons = [
-        [InlineKeyboardButton("🧾 Go to Registration", url="https://zancoinmint.com/register")],
+        [InlineKeyboardButton("🧾 Go to Registration", url="https://zancoinmint.com/panel/dist/auth-register.php")],
         [InlineKeyboardButton("🔙 Back", callback_data="back_main")],
     ]
     await send_translated(update, context, text, buttons)
@@ -166,7 +168,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = "🔐 Redirecting to login page..."
     buttons = [
-        [InlineKeyboardButton("🔑 Go to Login", url="https://zancoinmint.com/login")],
+        [InlineKeyboardButton("🔑 Go to Login", url="https://zancoinmint.com/panel/dist/auth-login.html")],
         [InlineKeyboardButton("🔙 Back", callback_data="back_main")],
     ]
     await send_translated(update, context, text, buttons)
