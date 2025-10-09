@@ -16,7 +16,7 @@ logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ---------- Supported languages (display name, code) ----------
+# ---------- Supported languages ----------
 LANG_CHOICES = [
     ("English", "en"),
     ("Türkçe", "tr"),
@@ -72,7 +72,7 @@ def build_keyboard(buttons_config, lang_code: str):
     return InlineKeyboardMarkup(kb)
 
 
-# ---------- Helpers to get user's language ----------
+# ---------- Helpers ----------
 def get_user_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     lang = context.user_data.get("lang")
     if lang:
@@ -102,7 +102,7 @@ async def send_translated(update: Update, context: ContextTypes.DEFAULT_TYPE, te
             await update.message.reply_text(translated_text)
 
 
-# ---------- Menu / Content (English originals) ----------
+# ---------- Menu Texts ----------
 MAIN_MENU_TEXT = "👋 Welcome! Please choose an option below:"
 WHAT_IS_PROMPT = "Choose an option below:"
 EXPLAIN_TEXT = (
@@ -133,7 +133,7 @@ EARN_TEXT = (
 )
 
 
-# ---------- Button configs (English labels & callback/url) ----------
+# ---------- Buttons ----------
 def main_menu_buttons():
     return [
         [
@@ -145,9 +145,6 @@ def main_menu_buttons():
         ],
         [
             {"text": "How can I earn?", "callback": "earn"},
-        ],
-        [
-            {"text": "Support Email", "url": "mailto:support@zancoinmint.com"},
         ],
         [
             {"text": "Change Language", "callback": "change_lang"},
@@ -239,7 +236,6 @@ def login_buttons():
     ]
 
 
-# ---------- Language selection UI ----------
 def language_selection_buttons():
     rows = []
     row = []
@@ -250,7 +246,6 @@ def language_selection_buttons():
             row = []
     if row:
         rows.append(row)
-    # add back button
     rows.append([{"text": "Back", "callback": "back_main"}])
     return rows
 
@@ -314,14 +309,12 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.callback_query.answer(text=translated, show_alert=False)
     except Exception:
         pass
-    # After setting language, show main menu (translated)
     await send_translated(update, context, MAIN_MENU_TEXT, main_menu_buttons())
 
 
 # ---------- Error handler ----------
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.exception("Exception while handling an update: %s", context.error)
-    # optional: notify user
     try:
         if isinstance(update, Update) and update.effective_user:
             lang = get_user_lang(update, context)
