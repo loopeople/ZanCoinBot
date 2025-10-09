@@ -23,16 +23,22 @@ def translate_text(text, target_lang):
     try:
         return GoogleTranslator(source='auto', target=target_lang).translate(text)
     except Exception:
-        return text  # fallback if translation fails
+        return text
 
 # ---------- Send Translated Text ----------
 async def send_translated(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, buttons=None):
     user_lang = update.effective_user.language_code or "en"
     translated_text = translate_text(text, user_lang)
     if update.message:
-        await update.message.reply_text(translated_text, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+        await update.message.reply_text(
+            translated_text,
+            reply_markup=InlineKeyboardMarkup(buttons) if buttons else None
+        )
     else:
-        await update.callback_query.message.edit_text(translated_text, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+        await update.callback_query.message.edit_text(
+            translated_text,
+            reply_markup=InlineKeyboardMarkup(buttons) if buttons else None
+        )
 
 # ---------- Start / Main Menu ----------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -122,7 +128,7 @@ async def game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     buttons = [
         [
-            InlineKeyboardButton("🏁 Back", callback_data="explain"),
+            InlineKeyboardButton("🔙 Back", callback_data="explain"),
         ],
     ]
     await send_translated(update, context, text, buttons)
@@ -175,9 +181,10 @@ async def login(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------- Main ----------
 def main():
-    TOKEN = os.getenv("TELEGRAM_TOKEN")  # <-- Render Environment Variable
+    TOKEN = os.getenv("TELEGRAM_TOKEN")
     app = ApplicationBuilder().token(TOKEN).build()
 
+    # Command & Callback handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(what_is, pattern="^what_is$"))
     app.add_handler(CallbackQueryHandler(explain, pattern="^explain$"))
